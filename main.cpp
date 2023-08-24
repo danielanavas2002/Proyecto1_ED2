@@ -92,7 +92,7 @@ void setup(){
   pinMode(pinT2, OUTPUT);
   pinMode(pinT3, OUTPUT);
   
-  // Inicializar los pines de segmentos apagados
+  //Inicializar los pines de segmentos apagados
   digitalWrite(pinA, HIGH);
   digitalWrite(pinB, HIGH);
   digitalWrite(pinC, HIGH);
@@ -101,10 +101,10 @@ void setup(){
   digitalWrite(pinF, HIGH);
   digitalWrite(pinG, HIGH);
 
-  // Inicializa los transistores apagados
-  digitalWrite(pinT1, HIGH);
-  digitalWrite(pinT2, HIGH);
-  digitalWrite(pinT3, HIGH); 
+  //Inicializar los transistores
+  digitalWrite(pinT1, LOW);
+  digitalWrite(pinT2, LOW);
+  digitalWrite(pinT3, LOW); 
 
   Serial.begin(115200);
   // wait for serial monitor to open
@@ -175,7 +175,7 @@ void configurarPWM(void){
   ledcAttachPin(pinServo, servoChannel);
 }
 // ****************************************************************************
-// Funcion Media Movil
+// Funcion Semaforo
 // ****************************************************************************
 void semaforo(void){
     Serial.println("LECTURA DE TEMPERATURA");
@@ -186,19 +186,19 @@ void semaforo(void){
     //Limites de Temperatura y acciones a realizar en LED y SERVO
     if(tempCelsius <= 37.0){
       Serial.println("TEMPERATURA NORMAL");
-      ledcWrite(servoChannel, 6); //map(tempCelsius*10, 350, 370, 6, 14)
+      ledcWrite(servoChannel, map(tempCelsius*10, 20, 370, 6, 14)); //6
       ledcWrite(ledRChannel, 0);
       ledcWrite(ledGChannel, map(tempCelsius*10, 20, 370, 10, 60));
       ledcWrite(ledBChannel, 0);
     } if(37.0 < tempCelsius && tempCelsius < 37.5){
       Serial.println("TEMPERATURA MODERADA");
-      ledcWrite(servoChannel, 20); //map(tempCelsius*10, 371, 374, 15, 23)
+      ledcWrite(servoChannel, map(tempCelsius*10, 371, 374, 15, 23)); //20
       ledcWrite(ledRChannel, map(tempCelsius*10, 371, 374, 10, 60));
       ledcWrite(ledGChannel, map(tempCelsius*10, 371, 374, 10, 60));
       ledcWrite(ledBChannel, 0);
     } if(tempCelsius >= 37.5){
       Serial.println("TEMPERATURA ALTA");
-      ledcWrite(servoChannel, 33); //map(tempCelsius*10, 375, 400, 24, 33)
+      ledcWrite(servoChannel, map(tempCelsius*10, 375, 1500, 24, 33));  //33
       ledcWrite(ledRChannel, map(tempCelsius*10, 375, 1500, 10, 60));
       ledcWrite(ledGChannel, 0);
       ledcWrite(ledBChannel, 0);
