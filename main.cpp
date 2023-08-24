@@ -42,6 +42,7 @@
 // Prototipos de funciones
 //****************************************************************
 void configurarPWM(void);
+void semaforo(void);
 void mediaMovil(void);
 void display(int pinDigito, int num);
 //****************************************************************
@@ -61,13 +62,14 @@ int indexLecturas = 0; // índice de muestras
 int numLecturas = 10; // Número de muestras
 long tempAnalogicoFiltrado = 0; // Valor de adc filtrado
 //Display
-int parteEntera;
-int parteDecimal;
+int decena;
+int unidad;
+int decimal;
 //****************************************************************
 // Configuración Adafruit
 //****************************************************************
-// set up the 'Canal de Temperatura' feed
-//AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
+//set up the 'Canal de Temperatura' feed
+AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
 //****************************************************************
 // Configuración
 //****************************************************************
@@ -78,7 +80,7 @@ void setup(){
 
   ledcWrite(servoChannel, 6);
 
-  // Configurar los pines de Display y Transistores como salidas
+  // Configurar los pines de Display y Transistores como salidas 
   pinMode(pinA, OUTPUT);
   pinMode(pinB, OUTPUT);
   pinMode(pinC, OUTPUT);
@@ -90,7 +92,7 @@ void setup(){
   pinMode(pinT2, OUTPUT);
   pinMode(pinT3, OUTPUT);
   
-  // Inicializar los pines de segmentos en alto (apagados)
+  // Inicializar los pines de segmentos apagados
   digitalWrite(pinA, HIGH);
   digitalWrite(pinB, HIGH);
   digitalWrite(pinC, HIGH);
@@ -102,11 +104,11 @@ void setup(){
   // Inicializa los transistores apagados
   digitalWrite(pinT1, HIGH);
   digitalWrite(pinT2, HIGH);
-  digitalWrite(pinT3, HIGH);
+  digitalWrite(pinT3, HIGH); 
 
   Serial.begin(115200);
   // wait for serial monitor to open
-  /*
+  
   while(! Serial);
 
   Serial.print("Connecting to Adafruit IO");
@@ -123,7 +125,7 @@ void setup(){
   // we are connected
   Serial.println();
   Serial.println(io.statusText());
-  */
+
 }
 //****************************************************************
 // Loop Principal
@@ -131,84 +133,29 @@ void setup(){
 void loop() {
   estadoBoton = digitalRead(pinBoton);
   delay(100);
-  //io.run(); 
+  io.run(); 
 
   if (estadoBoton == 1 && estadoAnteriorBoton == 0) {
     banderaLectura = true;
   }
   estadoAnteriorBoton = estadoBoton;
-/*
-  if(banderaLectura){
-    Serial.println("LECTURA DE TEMPERATURA");
-    mediaMovil();
-    tempCelsius = map(tempAnalogicoFiltrado, 0, 4095, 20, 1500)/10.0;
-    Serial.println(tempAnalogico);
-    Serial.println(tempAnalogicoFiltrado);
-    Serial.println(tempCelsius);
-    banderaLectura = false;
-  }
-*/ /*
-  if(banderaLectura){
-    Serial.println("LECTURA DE TEMPERATURA");
-    tempAnalogico = analogRead(pinADC);
-    tempCelsius = map(tempAnalogico, 0, 4095, 20, 1500)/10.0;
-    Serial.println(tempAnalogico);
-    Serial.println(tempCelsius);
-    banderaLectura = false;
-  } */
-  
-  if(banderaLectura){
-    Serial.println("LECTURA DE TEMPERATURA");
-    tempAnalogico = analogRead(pinADC);
-    tempCelsius = map(tempAnalogico, 0, 4095, 350, 400)/10.0;
-    Serial.println(tempAnalogico);
-    Serial.println(tempCelsius);
-    
-    if(tempCelsius <= 37.0){
-      Serial.println("TEMPERATURA NORMAL");
-      ledcWrite(servoChannel, 6);
-      ledcWrite(ledRChannel, 0);
-      ledcWrite(ledGChannel, 60);
-      ledcWrite(ledBChannel, 0);
-    }
 
-    if(37.0 < tempCelsius && tempCelsius < 37.5){
-      ledcWrite(servoChannel, 20);
-      ledcWrite(ledRChannel, 60);
-      ledcWrite(ledGChannel, 60);
-      ledcWrite(ledBChannel, 0);
-    }
-
-    if(tempCelsius >= 37.5){
-      Serial.println("TEMPERATURA ALTA");
-      ledcWrite(servoChannel, 33);
-      ledcWrite(ledRChannel, 60);
-      ledcWrite(ledGChannel, 0);
-      ledcWrite(ledBChannel, 0);
-    }
-
-    // Obtener la parte entera y decimal del valor de temperatura
-    parteEntera = int(tempCelsius);
-    parteDecimal = int((tempCelsius - parteEntera) * 10);
-/*
-    Serial.print("sending -> ");
-    Serial.println(tempCelsius);
-    tempCanal->save(tempCelsius);
-    delay(3000);*/
-
-    banderaLectura = false;
+  if(banderaLectura){ //Cuando se active la Bandera
+    semaforo(); //Ejecutar medicion y actualizar semaforo
+    banderaLectura = false; //Desactivar Bandera
   } 
-  // Mostrar la temperatura en los displays
-  display(pinT1, parteEntera / 10);
-  delay(1); // Pequeña pausa para evitar el parpadeo
-  display(pinT2, parteEntera % 10);
-  delay(1); // Pequeña pausa
-  display(pinT3, parteDecimal);
-  delay(1); // Pequeña pausa
-
+  /**/
+  //Mostrar la temperatura en los displays
+  display(pinT1, decena); //Mostrar el primer digito
+  delay(5); //Pequeña pausa 
+  display(pinT2, unidad); //Mostrar el segundo digito
+  delay(5); //Pequeña pausa
+  display(pinT3, decimal); //Mostrar el tercer digito
+  delay(5); //Pequeña pausa
+  /*
   tempAnalogico = analogRead(pinADC);
   tempCelsius = map(tempAnalogico, 0, 4095, 6, 33);
-  ledcWrite(servoChannel, tempCelsius);
+  ledcWrite(servoChannel, tempCelsius); */
 
 }
 //****************************************************************
@@ -230,20 +177,59 @@ void configurarPWM(void){
 // ****************************************************************************
 // Funcion Media Movil
 // ****************************************************************************
+void semaforo(void){
+    Serial.println("LECTURA DE TEMPERATURA");
+    mediaMovil();
+    tempCelsius = map(tempAnalogicoFiltrado, 0, 2047, 20, 1500)/10.0; //tempCelsius = map(tempAnalogicoFiltrado, 0, 4095, 20, 1500)/10.0;
+    Serial.println(tempAnalogico);
+    Serial.println(tempCelsius);
+    //Limites de Temperatura y acciones a realizar en LED y SERVO
+    if(tempCelsius <= 37.0){
+      Serial.println("TEMPERATURA NORMAL");
+      ledcWrite(servoChannel, 6); //map(tempCelsius*10, 350, 370, 6, 14)
+      ledcWrite(ledRChannel, 0);
+      ledcWrite(ledGChannel, map(tempCelsius*10, 20, 370, 10, 60));
+      ledcWrite(ledBChannel, 0);
+    } if(37.0 < tempCelsius && tempCelsius < 37.5){
+      Serial.println("TEMPERATURA MODERADA");
+      ledcWrite(servoChannel, 20); //map(tempCelsius*10, 371, 374, 15, 23)
+      ledcWrite(ledRChannel, map(tempCelsius*10, 371, 374, 10, 60));
+      ledcWrite(ledGChannel, map(tempCelsius*10, 371, 374, 10, 60));
+      ledcWrite(ledBChannel, 0);
+    } if(tempCelsius >= 37.5){
+      Serial.println("TEMPERATURA ALTA");
+      ledcWrite(servoChannel, 33); //map(tempCelsius*10, 375, 400, 24, 33)
+      ledcWrite(ledRChannel, map(tempCelsius*10, 375, 1500, 10, 60));
+      ledcWrite(ledGChannel, 0);
+      ledcWrite(ledBChannel, 0);
+    }
+    //Obtener la decena, unidad y decimal del valor de temperatura
+    decena = int(tempCelsius)/10;
+    unidad = int(tempCelsius)%10;
+    decimal = ((tempCelsius*10)-(decena*100)) - (unidad*10);
+
+    //Enviar datos con Adafruit
+    Serial.print("sending -> ");
+    Serial.println(tempCelsius);
+    tempCanal->save(tempCelsius);
+    delay(3000);
+} 
+// ****************************************************************************
+// Funcion Media Movil
+// ****************************************************************************
 void mediaMovil(void){
   mAvgSuma = 0;  // Reinicia la suma de temperaturas
-    for (int i = 0; i < numLecturas; i++) {
+    for (int i = 0; i < numLecturas; i++) { //Adquirir y sumar 10 datos
       tempAnalogico = analogRead(pinADC);
       mAvgSuma += tempAnalogico;
-      delay(100); // Espera un breve instante entre lecturas
     }
-    tempAnalogicoFiltrado = mAvgSuma / numLecturas;
+    tempAnalogicoFiltrado = mAvgSuma / numLecturas; //Promediar los 10 datos
 } 
 // ****************************************************************************
 // Funcion para Display
 // ****************************************************************************
-// Función para mostrar un número en un dígito específico del display
 void display(int pinDigito, int num) {
+  //Establecer que segmento se debe encender para cada numero
   digitalWrite(pinA, num != 0 && num != 2 && num != 3 && num != 5 && num != 6 && num != 7 && num != 8 && num != 9);
   digitalWrite(pinB, num != 0 && num != 1 && num != 2 && num != 3 && num != 4 && num != 7 && num != 8 && num != 9);
   digitalWrite(pinC, num != 0 && num != 1 && num != 3 && num != 4 && num != 5 && num != 6 && num != 7 && num != 8 && num != 9);
@@ -251,16 +237,14 @@ void display(int pinDigito, int num) {
   digitalWrite(pinE, num != 0 && num != 2 && num != 6 && num != 8);
   digitalWrite(pinF, num != 0 && num != 4 && num != 5 && num != 6 && num != 8 && num != 9);
   digitalWrite(pinG, num != 0 && num != 2 && num != 3 && num != 5 && num != 6 && num != 8 && num != 9);
-
+  //Activar el digito correspondiente
   digitalWrite(pinDigito, LOW);
-
+  //Desactivar el resto de digitos
   if (pinDigito != pinT1) {
     digitalWrite(pinT1, HIGH);
-  }
-  if (pinDigito != pinT2) {
+  } if (pinDigito != pinT2) {
     digitalWrite(pinT2, HIGH);
-  }
-  if (pinDigito != pinT3) {
+  } if (pinDigito != pinT3) {
     digitalWrite(pinT3, HIGH);
   }
 }
