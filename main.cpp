@@ -68,18 +68,18 @@ int decimal;
 //****************************************************************
 // Configuración Adafruit
 //****************************************************************
-//set up the 'Canal de Temperatura' feed
 AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
 //****************************************************************
 // Configuración
 //****************************************************************
 void setup(){
-  pinMode(pinBoton, INPUT_PULLDOWN);
-  pinMode(pinADC, INPUT);
+  //Definicion de Entradas
+  pinMode(pinBoton, INPUT_PULLDOWN); //Entrada Boton
+  pinMode(pinADC, INPUT); //Entrada ADC
+  //Configurar PWM
   configurarPWM();
-
+  //Posicionar Servo en posicion Inicial
   ledcWrite(servoChannel, 6);
-
   // Configurar los pines de Display y Transistores como salidas 
   pinMode(pinA, OUTPUT);
   pinMode(pinB, OUTPUT);
@@ -91,7 +91,6 @@ void setup(){
   pinMode(pinT1, OUTPUT);
   pinMode(pinT2, OUTPUT);
   pinMode(pinT3, OUTPUT);
-  
   //Inicializar los pines de segmentos apagados
   digitalWrite(pinA, HIGH);
   digitalWrite(pinB, HIGH);
@@ -100,43 +99,33 @@ void setup(){
   digitalWrite(pinE, HIGH);
   digitalWrite(pinF, HIGH);
   digitalWrite(pinG, HIGH);
-
   //Inicializar los transistores
   digitalWrite(pinT1, LOW);
   digitalWrite(pinT2, LOW);
   digitalWrite(pinT3, LOW); 
-
+  //Monitor Serial
   Serial.begin(115200);
-  // wait for serial monitor to open
-  
+  //Configuracion Adafruit
   while(! Serial);
-
   Serial.print("Connecting to Adafruit IO");
-
-  // connect to io.adafruit.com
   io.connect();
-
-  // wait for a connection
   while(io.status() < AIO_CONNECTED) {
     Serial.print(".");
     delay(500);
   } 
-
-  // we are connected
   Serial.println();
-  Serial.println(io.statusText());
-
+  Serial.println(io.statusText()); //Completar conexion
 }
 //****************************************************************
 // Loop Principal
 //****************************************************************
 void loop() {
-  estadoBoton = digitalRead(pinBoton);
+  io.run(); //Iniciar Adafruit
+  estadoBoton = digitalRead(pinBoton); //Lectura de Boton
   delay(100);
-  io.run(); 
-
+  //Antirebote de Boton
   if (estadoBoton == 1 && estadoAnteriorBoton == 0) {
-    banderaLectura = true;
+    banderaLectura = true; //Activar Bandera
   }
   estadoAnteriorBoton = estadoBoton;
 
