@@ -27,17 +27,18 @@
 #define pinLedB 5 //Led Azul
 #define pinServo 23 //Servo
 //Definicion Pines de Displays
-#define pinA 33 //A
+#define pinA 27 //A
 #define pinB 32 //B
-#define pinC 27 //C
-#define pinD 26 //D
-#define pinE 13 //E
-#define pinF 25 //F
-#define pinG 14 //G
+#define pinC 21 //C
+#define pinD 16 //D
+#define pinE 4 //E
+#define pinF 26 //F
+#define pinG 13 //G
+#define pinDP 17 //Punto
 //Definicion Transistores
-#define pinT1 4 //Transistor 1
-#define pinT2 16 //Transistor 2
-#define pinT3 17 //Transistor 3
+#define pinT1 33 //Transistor 1
+#define pinT2 25 //Transistor 2
+#define pinT3 14 //Transistor 3
 //****************************************************************
 // Prototipos de funciones
 //****************************************************************
@@ -68,7 +69,7 @@ int decimal;
 //****************************************************************
 // Configuración Adafruit
 //****************************************************************
-AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
+// AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
 //****************************************************************
 // Configuración
 //****************************************************************
@@ -105,8 +106,8 @@ void setup(){
   digitalWrite(pinT3, LOW); 
   //Monitor Serial
   Serial.begin(115200);
-  //Configuracion Adafruit
-  while(! Serial);
+  //Configuracion Adafruit 
+  /*while(! Serial);
   Serial.print("Connecting to Adafruit IO");
   io.connect();
   while(io.status() < AIO_CONNECTED) {
@@ -114,15 +115,15 @@ void setup(){
     delay(500);
   } 
   Serial.println();
-  Serial.println(io.statusText()); //Completar conexion
+  Serial.println(io.statusText()); //Completar conexion */
 }
 //****************************************************************
 // Loop Principal
 //****************************************************************
 void loop() {
-  io.run(); //Iniciar Adafruit
+  //io.run(); //Iniciar Adafruit
   estadoBoton = digitalRead(pinBoton); //Lectura de Boton
-  delay(100);
+  //delay(100);
   //Antirebote de Boton
   if (estadoBoton == 1 && estadoAnteriorBoton == 0) {
     banderaLectura = true; //Activar Bandera
@@ -133,6 +134,9 @@ void loop() {
     semaforo(); //Ejecutar medicion y actualizar semaforo
     banderaLectura = false; //Desactivar Bandera
   } 
+  decena = 9;
+  unidad = 2;
+  decimal = 8;
   /**/
   //Mostrar la temperatura en los displays
   display(pinT1, decena); //Mostrar el primer digito
@@ -169,8 +173,8 @@ void configurarPWM(void){
 void semaforo(void){
     Serial.println("LECTURA DE TEMPERATURA");
     mediaMovil();
-    tempCelsius = map(tempAnalogicoFiltrado, 0, 2047, 20, 1500)/10.0; //tempCelsius = map(tempAnalogicoFiltrado, 0, 4095, 20, 1500)/10.0;
-    Serial.println(tempAnalogico);
+    tempCelsius = ((tempAnalogicoFiltrado*5000.0)/4095)/10.0;
+    Serial.println(tempAnalogicoFiltrado);
     Serial.println(tempCelsius);
     //Limites de Temperatura y acciones a realizar en LED y SERVO
     if(tempCelsius <= 37.0){
@@ -196,12 +200,12 @@ void semaforo(void){
     decena = int(tempCelsius)/10;
     unidad = int(tempCelsius)%10;
     decimal = ((tempCelsius*10)-(decena*100)) - (unidad*10);
-
+/*
     //Enviar datos con Adafruit
     Serial.print("sending -> ");
     Serial.println(tempCelsius);
     tempCanal->save(tempCelsius);
-    delay(3000);
+    delay(3000); */
 } 
 // ****************************************************************************
 // Funcion Media Movil
@@ -226,6 +230,12 @@ void display(int pinDigito, int num) {
   digitalWrite(pinE, num != 0 && num != 2 && num != 6 && num != 8);
   digitalWrite(pinF, num != 0 && num != 4 && num != 5 && num != 6 && num != 8 && num != 9);
   digitalWrite(pinG, num != 0 && num != 2 && num != 3 && num != 5 && num != 6 && num != 8 && num != 9);
+  // Manejar el punto decimal en el segundo display
+  if (pinDigito == pinT2) {
+    digitalWrite(pinDP, LOW); // Encender el punto decimal
+  } else {
+    digitalWrite(pinDP, HIGH); // Apagar el punto decimal
+  }
   //Activar el digito correspondiente
   digitalWrite(pinDigito, LOW);
   //Desactivar el resto de digitos
