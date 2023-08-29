@@ -69,7 +69,7 @@ int decimal;
 //****************************************************************
 // Configuración Adafruit
 //****************************************************************
-// AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
+AdafruitIO_Feed *tempCanal = io.feed("tempCelsius");
 //****************************************************************
 // Configuración
 //****************************************************************
@@ -89,6 +89,7 @@ void setup(){
   pinMode(pinE, OUTPUT);
   pinMode(pinF, OUTPUT);
   pinMode(pinG, OUTPUT);
+  pinMode(pinDP, OUTPUT);
   pinMode(pinT1, OUTPUT);
   pinMode(pinT2, OUTPUT);
   pinMode(pinT3, OUTPUT);
@@ -107,7 +108,7 @@ void setup(){
   //Monitor Serial
   Serial.begin(115200);
   //Configuracion Adafruit 
-  /*while(! Serial);
+  while(! Serial);
   Serial.print("Connecting to Adafruit IO");
   io.connect();
   while(io.status() < AIO_CONNECTED) {
@@ -115,15 +116,14 @@ void setup(){
     delay(500);
   } 
   Serial.println();
-  Serial.println(io.statusText()); //Completar conexion */
+  Serial.println(io.statusText()); //Completar conexion 
 }
 //****************************************************************
 // Loop Principal
 //****************************************************************
 void loop() {
-  //io.run(); //Iniciar Adafruit
+  io.run(); //Iniciar Adafruit
   estadoBoton = digitalRead(pinBoton); //Lectura de Boton
-  //delay(100);
   //Antirebote de Boton
   if (estadoBoton == 1 && estadoAnteriorBoton == 0) {
     banderaLectura = true; //Activar Bandera
@@ -134,22 +134,13 @@ void loop() {
     semaforo(); //Ejecutar medicion y actualizar semaforo
     banderaLectura = false; //Desactivar Bandera
   } 
-  decena = 9;
-  unidad = 2;
-  decimal = 8;
-  /**/
   //Mostrar la temperatura en los displays
   display(pinT1, decena); //Mostrar el primer digito
-  delay(5); //Pequeña pausa 
+  delay(10); //Pequeña pausa 
   display(pinT2, unidad); //Mostrar el segundo digito
-  delay(5); //Pequeña pausa
+  delay(10); //Pequeña pausa
   display(pinT3, decimal); //Mostrar el tercer digito
-  delay(5); //Pequeña pausa
-  /*
-  tempAnalogico = analogRead(pinADC);
-  tempCelsius = map(tempAnalogico, 0, 4095, 6, 33);
-  ledcWrite(servoChannel, tempCelsius); */
-
+  delay(10); //Pequeña pausa
 }
 //****************************************************************
 // Función para configurar módulo PWM
@@ -200,12 +191,12 @@ void semaforo(void){
     decena = int(tempCelsius)/10;
     unidad = int(tempCelsius)%10;
     decimal = ((tempCelsius*10)-(decena*100)) - (unidad*10);
-/*
+
     //Enviar datos con Adafruit
     Serial.print("sending -> ");
     Serial.println(tempCelsius);
     tempCanal->save(tempCelsius);
-    delay(3000); */
+    //delay(3000); 
 } 
 // ****************************************************************************
 // Funcion Media Movil
@@ -231,9 +222,9 @@ void display(int pinDigito, int num) {
   digitalWrite(pinF, num != 0 && num != 4 && num != 5 && num != 6 && num != 8 && num != 9);
   digitalWrite(pinG, num != 0 && num != 2 && num != 3 && num != 5 && num != 6 && num != 8 && num != 9);
   // Manejar el punto decimal en el segundo display
-  if (pinDigito == pinT2) {
+  if (pinDigito == pinT2) { //Cuando este encendido el Digito 2
     digitalWrite(pinDP, LOW); // Encender el punto decimal
-  } else {
+  } else {                    // En cualquier otro caso
     digitalWrite(pinDP, HIGH); // Apagar el punto decimal
   }
   //Activar el digito correspondiente
