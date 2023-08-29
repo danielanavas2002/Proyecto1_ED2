@@ -30,10 +30,10 @@
 #define pinA 27 //A
 #define pinB 32 //B
 #define pinC 21 //C
-#define pinD 16 //D
+#define pinD 13 //D
 #define pinE 4 //E
 #define pinF 26 //F
-#define pinG 13 //G
+#define pinG 16 //G
 #define pinDP 17 //Punto
 //Definicion Transistores
 #define pinT1 33 //Transistor 1
@@ -122,7 +122,7 @@ void setup(){
 // Loop Principal
 //****************************************************************
 void loop() {
-  io.run(); //Iniciar Adafruit
+  //io.run(); //Iniciar Adafruit
   estadoBoton = digitalRead(pinBoton); //Lectura de Boton
   //Antirebote de Boton
   if (estadoBoton == 1 && estadoAnteriorBoton == 0) {
@@ -136,11 +136,11 @@ void loop() {
   } 
   //Mostrar la temperatura en los displays
   display(pinT1, decena); //Mostrar el primer digito
-  delay(10); //Pequeña pausa 
+  delay(5); //Pequeña pausa 
   display(pinT2, unidad); //Mostrar el segundo digito
-  delay(10); //Pequeña pausa
+  delay(5); //Pequeña pausa
   display(pinT3, decimal); //Mostrar el tercer digito
-  delay(10); //Pequeña pausa
+  delay(5); //Pequeña pausa
 }
 //****************************************************************
 // Función para configurar módulo PWM
@@ -162,41 +162,41 @@ void configurarPWM(void){
 // Funcion Semaforo
 // ****************************************************************************
 void semaforo(void){
-    Serial.println("LECTURA DE TEMPERATURA");
-    mediaMovil();
-    tempCelsius = ((tempAnalogicoFiltrado*5000.0)/4095)/10.0;
-    Serial.println(tempAnalogicoFiltrado);
-    Serial.println(tempCelsius);
-    //Limites de Temperatura y acciones a realizar en LED y SERVO
-    if(tempCelsius <= 37.0){
-      Serial.println("TEMPERATURA NORMAL");
-      ledcWrite(servoChannel, map(tempCelsius*10, 20, 370, 6, 14)); //6
-      ledcWrite(ledRChannel, 0);
-      ledcWrite(ledGChannel, map(tempCelsius*10, 20, 370, 10, 60));
-      ledcWrite(ledBChannel, 0);
-    } if(37.0 < tempCelsius && tempCelsius < 37.5){
-      Serial.println("TEMPERATURA MODERADA");
-      ledcWrite(servoChannel, map(tempCelsius*10, 371, 374, 15, 23)); //20
-      ledcWrite(ledRChannel, map(tempCelsius*10, 371, 374, 10, 60));
-      ledcWrite(ledGChannel, map(tempCelsius*10, 371, 374, 10, 60));
-      ledcWrite(ledBChannel, 0);
-    } if(tempCelsius >= 37.5){
-      Serial.println("TEMPERATURA ALTA");
-      ledcWrite(servoChannel, map(tempCelsius*10, 375, 1500, 24, 33));  //33
-      ledcWrite(ledRChannel, map(tempCelsius*10, 375, 1500, 10, 60));
-      ledcWrite(ledGChannel, 0);
-      ledcWrite(ledBChannel, 0);
-    }
-    //Obtener la decena, unidad y decimal del valor de temperatura
-    decena = int(tempCelsius)/10;
-    unidad = int(tempCelsius)%10;
-    decimal = ((tempCelsius*10)-(decena*100)) - (unidad*10);
+  io.run(); //Iniciar Adafruit
+  Serial.println("LECTURA DE TEMPERATURA");
+  mediaMovil();
+  tempCelsius = ((tempAnalogicoFiltrado*5000.0)/4095)/10.0;
+  Serial.println(tempAnalogicoFiltrado);
+  Serial.println(tempCelsius);
+  //Limites de Temperatura y acciones a realizar en LED y SERVO
+  if(tempCelsius <= 37.0){
+    Serial.println("TEMPERATURA NORMAL");
+    ledcWrite(servoChannel, map(tempCelsius*10, 20, 370, 6, 14)); //6
+    ledcWrite(ledRChannel, 0);
+    ledcWrite(ledGChannel, map(tempCelsius*10, 20, 370, 10, 60));
+    ledcWrite(ledBChannel, 0);
+  } if(37.0 < tempCelsius && tempCelsius < 37.5){
+    Serial.println("TEMPERATURA MODERADA");
+    ledcWrite(servoChannel, map(tempCelsius*10, 371, 374, 15, 23)); //20
+    ledcWrite(ledRChannel, map(tempCelsius*10, 371, 374, 10, 60));
+    ledcWrite(ledGChannel, map(tempCelsius*10, 371, 374, 10, 60));
+    ledcWrite(ledBChannel, 0);
+  } if(tempCelsius >= 37.5){
+    Serial.println("TEMPERATURA ALTA");
+    ledcWrite(servoChannel, map(tempCelsius*10, 375, 1500, 24, 33));  //33
+    ledcWrite(ledRChannel, map(tempCelsius*10, 375, 1500, 10, 60));
+    ledcWrite(ledGChannel, 0);
+    ledcWrite(ledBChannel, 0);
+  }
+  //Obtener la decena, unidad y decimal del valor de temperatura
+  decena = int(tempCelsius)/10;
+  unidad = int(tempCelsius)%10;
+  decimal = ((tempCelsius*10)-(decena*100)) - (unidad*10);
 
-    //Enviar datos con Adafruit
-    Serial.print("sending -> ");
-    Serial.println(tempCelsius);
-    tempCanal->save(tempCelsius);
-    //delay(3000); 
+  //Enviar datos con Adafruit
+  Serial.print("sending -> ");
+  Serial.println(tempCelsius);
+  tempCanal->save(tempCelsius); 
 } 
 // ****************************************************************************
 // Funcion Media Movil
